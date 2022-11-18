@@ -1,4 +1,4 @@
-.. _ec_host_cmd_periph_api:
+.. _ec_host_cmd_transport_api:
 
 EC Host Command
 ###############

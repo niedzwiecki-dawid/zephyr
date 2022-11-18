@@ -1,0 +1,17 @@
+# Host Command Peripheral simulator config
+
+# Copyright (c) 2020 Google LLC
+# SPDX-License-Identifier: Apache-2.0
+
+config EC_HOST_CMD_SIMULATOR
+	bool "Embedded Controller Host Command Peripheral Simulator"
+	help
+	  Enable the EC host command simulator.
+
+config EC_HOST_CMD_PERIPH_ESPI
+	bool "Host commands support using eSPI bus"
+	depends on ESPI_PERIPHERAL_EC_HOST_CMD
+	depends on ESPI_PERIPHERAL_CUSTOM_OPCODE
+	help
+	  Enable support for Embedded Controller host commands using
+	  the eSPI bus.

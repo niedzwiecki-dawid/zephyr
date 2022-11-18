@@ -21,6 +21,12 @@
 extern "C" {
 #endif
 
+
+struct ec_host_cmd_transport {
+	const struct ec_host_cmd_transport_api *api;
+	void *ctx;
+};
+
 /**
  * @brief Host Command Peripherals API
  * @defgroup ec_host_cmd_periph Host Command Peripherals API
@@ -31,7 +37,7 @@ extern "C" {
 /**
  * @brief Context for host command peripheral and framework to pass rx data
  */
-struct ec_host_cmd_periph_rx_ctx {
+struct ec_host_cmd_rx_ctx {
 	/** Buffer written to by device (when dev_owns) and read from by
 	 *  command framework and handler (when handler_owns). Buffer is owned
 	 *  by devices and lives as long as device is valid. Device will never
@@ -39,34 +45,23 @@ struct ec_host_cmd_periph_rx_ctx {
 	 */
 	uint8_t *buf;
 	/** Number of bytes written to @a buf by device (when dev_owns). */
-	size_t *len;
+	size_t len;
 	/** Device will take when it needs to write to @a buf and @a size. */
-	struct k_sem *dev_owns;
+	struct k_sem dev_owns;
 	/** Handler will take so it can read @a buf and @a size */
-	struct k_sem *handler_owns;
+	struct k_sem handler_owns;
 };
 
 /**
  * @brief Context for host command peripheral and framework to pass tx data
  */
-struct ec_host_cmd_periph_tx_buf {
+struct ec_host_cmd_tx_buf {
 	/** Data to write to the host */
 	void *buf;
 	/** Number of bytes to write from @a buf */
 	size_t len;
 };
 
-typedef int (*ec_host_cmd_periph_api_init)(
-	const struct device *dev, struct ec_host_cmd_periph_rx_ctx *rx_ctx);
-
-typedef int (*ec_host_cmd_periph_api_send)(
-	const struct device *dev,
-	const struct ec_host_cmd_periph_tx_buf *tx_buf);
-
-__subsystem struct ec_host_cmd_periph_api {
-	ec_host_cmd_periph_api_init init;
-	ec_host_cmd_periph_api_send send;
-};
 
 /**
  * @brief Initialize a host command device
@@ -83,15 +78,10 @@ __subsystem struct ec_host_cmd_periph_api {
  *
  * @retval 0 if successful
  */
-static inline int
-ec_host_cmd_periph_init(const struct device *dev,
-			       struct ec_host_cmd_periph_rx_ctx *rx_ctx)
-{
-	const struct ec_host_cmd_periph_api *api =
-		(const struct ec_host_cmd_periph_api *)dev->api;
+typedef int (*ec_host_cmd_transport_api_init)(
+	const struct ec_host_cmd_transport *transport, const void *config, struct ec_host_cmd_rx_ctx *rx_ctx,
+	struct ec_host_cmd_tx_buf *tx);
 
-	return api->init(dev, rx_ctx);
-}
 
 /**
  * @brief Sends the specified data to the host
@@ -104,15 +94,16 @@ ec_host_cmd_periph_init(const struct device *dev,
  *
  * @retval 0 if successful
  */
-static inline int ec_host_cmd_periph_send(
-	const struct device *dev,
-	const struct ec_host_cmd_periph_tx_buf *tx_buf)
-{
-	const struct ec_host_cmd_periph_api *api =
-		(const struct ec_host_cmd_periph_api *)dev->api;
+typedef int (*ec_host_cmd_transport_api_send)(
+	const struct ec_host_cmd_transport *transport,
+	const struct ec_host_cmd_tx_buf *tx_buf);
 
-	return api->send(dev, tx_buf);
-}
+__subsystem struct ec_host_cmd_transport_api {
+	ec_host_cmd_transport_api_init init;
+	ec_host_cmd_transport_api_send send;
+};
+
+struct ec_host_cmd_transport *ec_host_cmd_backend_get_espi(void);
 
 /**
  * @}

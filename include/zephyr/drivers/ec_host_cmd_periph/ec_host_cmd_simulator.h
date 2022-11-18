@@ -13,7 +13,7 @@
  *        device interface.
  */
 
-/* For ec_host_cmd_periph_api_send function pointer type */
+/* For ec_host_cmd_transport_api_send function pointer type */
 #include <zephyr/drivers/ec_host_cmd_periph/ec_host_cmd_periph.h>
 
 /**
@@ -26,7 +26,7 @@
  *
  * @param cb Callback that is called when device would send data to host.
  */
-void ec_host_cmd_periph_sim_install_send_cb(ec_host_cmd_periph_api_send cb);
+void ec_host_cmd_periph_sim_install_send_cb(ec_host_cmd_transport_api_send cb);
 
 /**
  * @brief Simulate receiving data from host as passed in to this function
@@ -41,5 +41,7 @@ void ec_host_cmd_periph_sim_install_send_cb(ec_host_cmd_periph_api_send cb);
  * @retval -EBUSY if the host command framework is busy with another request.
  */
 int ec_host_cmd_periph_sim_data_received(const uint8_t *buffer, size_t len);
+
+struct ec_host_cmd_transport *ec_host_cmd_backend_get_sim(void);
 
 #endif /* ZEPHYR_INCLUDE_DRIVERS_EC_HOST_CMD_SIMULATOR_H_ */

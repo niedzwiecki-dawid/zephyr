@@ -15,6 +15,15 @@
  */
 
 #include <stdint.h>
+#include <zephyr/drivers/ec_host_cmd_periph/ec_host_cmd_periph.h>
+
+struct ec_host_cmd {
+	struct ec_host_cmd_rx_ctx rx_ctx;
+	struct ec_host_cmd_tx_buf tx;
+	struct ec_host_cmd_transport *iface;
+	struct k_thread *thread;
+	k_thread_stack_t *stack;
+};
 
 /**
  * @brief Arguments passed into every installed host command handler
@@ -28,13 +37,13 @@ struct ec_host_cmd_handler_args {
 	 * The version of the host command that is being requested. This will
 	 * be a value that has been static registered as valid for the handler.
 	 */
-	const uint8_t version;
+	uint8_t version;
 	/** The incoming data that can be cast to the handlers request type. */
-	const void *const input_buf;
+	const void *input_buf;
 	/** The number of valid bytes that can be read from @a input_buf. */
-	const uint16_t input_buf_size;
+	uint16_t input_buf_size;
 	/** The data written to this buffer will be send to the host. */
-	void *const output_buf;
+	void *output_buf;
 	/** Maximum number of bytes that can be written to the @a output_buf. */
 	uint16_t output_buf_max;
 	/** Number of bytes of @a output_buf to send to the host. */
@@ -211,6 +220,9 @@ enum ec_host_cmd_status {
 
 	EC_HOST_CMD_MAX = UINT16_MAX /* Force enum to be 16 bits. */
 } __packed;
+
+
+int ec_host_cmd_init(struct ec_host_cmd_transport *transport, void *transport_config);
 
 /**
  * @}

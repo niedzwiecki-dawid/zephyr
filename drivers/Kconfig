@@ -15,8 +15,6 @@ source "drivers/console/Kconfig"
 
 source "drivers/debug/Kconfig"
 
-source "drivers/ec_host_cmd_periph/Kconfig"
-
 source "drivers/ethernet/Kconfig"
 
 source "drivers/mdio/Kconfig"

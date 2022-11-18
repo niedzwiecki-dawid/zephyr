@@ -12,11 +12,11 @@
 K_SEM_DEFINE(send_called, 0, 1);
 struct ec_host_cmd_periph_tx_buf sent;
 
-static int host_send(const struct device *const dev,
-		     const struct ec_host_cmd_periph_tx_buf *const buf)
+static int host_send(const struct ec_host_cmd_transport *transport,
+		const struct ec_host_cmd_periph_tx_buf *tx_buf)
 {
-	sent.len = buf->len;
-	sent.buf = buf->buf;
+	sent.len = tx_buf->len;
+	sent.buf = tx_buf->buf;
 	k_sem_give(&send_called);
 	return 0;
 }
