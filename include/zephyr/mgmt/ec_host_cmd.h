@@ -224,6 +224,9 @@ enum ec_host_cmd_status {
 
 int ec_host_cmd_init(struct ec_host_cmd_transport *transport, void *transport_config);
 
+enum ec_host_cmd_status ec_host_cmd_handle_rx(const struct ec_host_cmd_transport *iface,
+		struct ec_host_cmd_rx_ctx *rx, struct ec_host_cmd_tx_buf *tx);
+
 /**
  * @}
  */

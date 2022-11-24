@@ -38,16 +38,17 @@ struct ec_host_cmd_transport {
  * @brief Context for host command peripheral and framework to pass rx data
  */
 struct ec_host_cmd_rx_ctx {
-	/** Buffer written to by device (when dev_owns) and read from by
+	/** Buffer written to by a backend layer and read from by
 	 *  command framework and handler (when handler_owns). Buffer is owned
 	 *  by devices and lives as long as device is valid. Device will never
 	 *  read from this buffer (for security reasons).
 	 */
 	uint8_t *buf;
+	/** Temporary buffer when tx and rx buffers overlaps.
+	 */
+	uint8_t *buf_tmp;
 	/** Number of bytes written to @a buf by device (when dev_owns). */
 	size_t len;
-	/** Device will take when it needs to write to @a buf and @a size. */
-	struct k_sem dev_owns;
 	/** Handler will take so it can read @a buf and @a size */
 	struct k_sem handler_owns;
 };
@@ -60,6 +61,8 @@ struct ec_host_cmd_tx_buf {
 	void *buf;
 	/** Number of bytes to write from @a buf */
 	size_t len;
+	/** Size of @a buf */
+	size_t len_max;
 };
 
 
