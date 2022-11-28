@@ -15,3 +15,9 @@ config EC_HOST_CMD_PERIPH_ESPI
 	help
 	  Enable support for Embedded Controller host commands using
 	  the eSPI bus.
+
+config EC_HOST_CMD_PERIPH_UART
+	bool "Host commands support using UART"
+	help
+	  Enable support for Embedded Controller host commands using
+	  the UART.
