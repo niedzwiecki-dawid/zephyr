@@ -32,6 +32,17 @@
 			device_type = "cpu";
 			compatible = "arm,cortex-m4f";
 			reg = <0>;
+			cpu-power-states = <&stop>;
+		};
+
+	};
+
+	power-states {
+		stop: stop {
+			compatible = "zephyr,power-state";
+			power-state-name = "suspend-to-idle";
+			min-residency-us = <3000>;
+			exit-latency-us = <2000>;
 		};
 	};
 
