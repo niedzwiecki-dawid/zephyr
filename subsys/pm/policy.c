@@ -143,15 +143,26 @@ const struct pm_state_info *pm_policy_next_state(uint8_t cpu, int32_t ticks)
 	}
 #endif
 
+//	printk("DN 1, ticks %d\n", ticks);
+
 	if (ticks != K_TICKS_FOREVER) {
+//		printk("DN 11\n");
 		cyc = k_ticks_to_cyc_ceil32(ticks);
+	} else {
+		printk("DN 12\n");
 	}
 
+//	printk("DN 2, cyc: %lld\n", cyc);
+
 	num_cpu_states = pm_state_cpu_get_all(cpu, &cpu_states);
+
+//	printk("DN 3 num_states %d, next_event_cyc: %lld \n", num_cpu_states, next_event_cyc);
 
 	if (next_event_cyc >= 0) {
 		uint32_t cyc_curr = k_cycle_get_32();
 		int64_t cyc_evt = next_event_cyc - cyc_curr;
+
+//		printk("DN 41\n");
 
 		/* event happening after cycle counter max value, pad */
 		if (next_event_cyc <= cyc_curr) {
@@ -170,18 +181,24 @@ const struct pm_state_info *pm_policy_next_state(uint8_t cpu, int32_t ticks)
 		}
 	}
 
+
 	for (int16_t i = (int16_t)num_cpu_states - 1; i >= 0; i--) {
 		const struct pm_state_info *state = &cpu_states[i];
 		uint32_t min_residency_cyc, exit_latency_cyc;
 
+//		printk("DN 42: state:%d, substate_id: %d\n", state->state, state->substate_id);
 		/* check if there is a lock on state + substate */
 		if (pm_policy_state_lock_is_active(state->state, state->substate_id)) {
+//			printk("DN 421 \n");
+
 			continue;
 		}
 
 		min_residency_cyc = k_us_to_cyc_ceil32(state->min_residency_us);
 		exit_latency_cyc = k_us_to_cyc_ceil32(state->exit_latency_us);
 
+//		printk("DN 422, cyc: %lld, ms: %lld, sum: %d\n",
+//			cyc, (cyc * 1000) / CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC, min_residency_cyc + exit_latency_cyc);
 		/* skip state if it brings too much latency */
 		if ((max_latency_cyc >= 0) &&
 		    (exit_latency_cyc >= max_latency_cyc)) {

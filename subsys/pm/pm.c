@@ -168,6 +168,7 @@ bool pm_state_force(uint8_t cpu, const struct pm_state_info *info)
 
 	return true;
 }
+int sus_count = 0;
 
 bool pm_system_suspend(int32_t ticks)
 {
@@ -175,6 +176,7 @@ bool pm_system_suspend(int32_t ticks)
 	k_spinlock_key_t key;
 
 	SYS_PORT_TRACING_FUNC_ENTER(pm, system_suspend, ticks);
+
 
 	key = k_spin_lock(&pm_forced_state_lock);
 	if (z_cpus_pm_forced_state[id].state != PM_STATE_ACTIVE) {
@@ -196,6 +198,11 @@ bool pm_system_suspend(int32_t ticks)
 				   z_cpus_pm_state[id].state);
 		return false;
 	}
+	sus_count++;
+
+//	if (sus_count > 1) {
+//		printk("DN 0\n");
+//	}
 
 	if (ticks != K_TICKS_FOREVER) {
 		/*
@@ -207,6 +214,10 @@ bool pm_system_suspend(int32_t ticks)
 			     z_cpus_pm_state[id].exit_latency_us),
 				     true);
 	}
+
+//	if (sus_count > 1) {
+//		printk("DN 1\n");
+//	}
 
 #if defined(CONFIG_PM_DEVICE) && !defined(CONFIG_PM_DEVICE_RUNTIME_EXCLUSIVE)
 	if (atomic_sub(&_cpus_active, 1) == 1) {
@@ -236,6 +247,11 @@ bool pm_system_suspend(int32_t ticks)
 	/* Enter power state */
 	pm_state_notify(true);
 	atomic_set_bit(z_post_ops_required, id);
+
+//	if (sus_count > 1) {
+//		printk("DN 2\n");
+//	}
+
 	pm_state_set(z_cpus_pm_state[id].state, z_cpus_pm_state[id].substate_id);
 	pm_stats_stop();
 

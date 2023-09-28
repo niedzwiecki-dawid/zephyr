@@ -90,15 +90,15 @@ uint32_t lpuartdiv_calc(const uint64_t clock_rate, const uint32_t baud_rate)
 #endif /* HAS_LPUART_1 */
 
 #ifdef CONFIG_PM
-static void uart_stm32_pm_policy_state_lock_get(const struct device *dev)
-{
-	struct uart_stm32_data *data = dev->data;
-
-	if (!data->pm_policy_state_on) {
-		data->pm_policy_state_on = true;
-		pm_policy_state_lock_get(PM_STATE_SUSPEND_TO_IDLE, PM_ALL_SUBSTATES);
-	}
-}
+//static void uart_stm32_pm_policy_state_lock_get(const struct device *dev)
+//{
+//	struct uart_stm32_data *data = dev->data;
+//
+//	if (!data->pm_policy_state_on) {
+//		data->pm_policy_state_on = true;
+//		pm_policy_state_lock_get(PM_STATE_SUSPEND_TO_IDLE, PM_ALL_SUBSTATES);
+//	}
+//}
 
 static void uart_stm32_pm_policy_state_lock_put(const struct device *dev)
 {
@@ -638,9 +638,6 @@ typedef void (*poll_out_fn)(
 static void uart_stm32_poll_out_visitor(const struct device *dev, void *out, poll_out_fn set_fn)
 {
 	const struct uart_stm32_config *config = dev->config;
-#ifdef CONFIG_PM
-	struct uart_stm32_data *data = dev->data;
-#endif
 	unsigned int key;
 
 	/* Wait for TXE flag to be raised
@@ -658,25 +655,6 @@ static void uart_stm32_poll_out_visitor(const struct device *dev, void *out, pol
 		}
 	}
 
-#ifdef CONFIG_PM
-
-	/* If an interrupt transmission is in progress, the pm constraint is already managed by the
-	 * call of uart_stm32_irq_tx_[en|dis]able
-	 */
-	if (!data->tx_poll_stream_on && !data->tx_int_stream_on) {
-		data->tx_poll_stream_on = true;
-
-		/* Don't allow system to suspend until stream
-		 * transmission has completed
-		 */
-		uart_stm32_pm_policy_state_lock_get(dev);
-
-		/* Enable TC interrupt so we can release suspend
-		 * constraint when done
-		 */
-		LL_USART_EnableIT_TC(config->usart);
-	}
-#endif /* CONFIG_PM */
 
 	set_fn(config, out);
 	irq_unlock(key);

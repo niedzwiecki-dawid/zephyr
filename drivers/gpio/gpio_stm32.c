@@ -595,6 +595,7 @@ static int gpio_stm32_pin_interrupt_configure(const struct device *dev,
 		stm32_exti_disable(pin);
 		goto exit;
 	} else if (mode == GPIO_INT_MODE_ENABLE_ONLY) {
+		printk("DN enablig exti1, pin: %d, name: %s, mode: %d, trig: %d\n", pin, dev->name, mode, trig);
 		stm32_exti_enable(pin);
 		goto exit;
 	}
@@ -636,6 +637,8 @@ static int gpio_stm32_pin_interrupt_configure(const struct device *dev,
 	}
 
 	stm32_exti_trigger(pin, edge);
+
+	printk("DN enablig exti2, pin: %d, name: %s, mode: %x, trig: %x\n", pin, dev->name, mode, trig);
 
 	stm32_exti_enable(pin);
 

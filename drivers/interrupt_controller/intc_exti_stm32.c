@@ -50,6 +50,8 @@ void stm32_exti_enable(int line)
 {
 	int irqnum = 0;
 
+	printk("DN exti enabling: %d\n", line);
+
 	if (line >= NUM_EXTI_LINES) {
 		__ASSERT_NO_MSG(line);
 	}
@@ -175,20 +177,26 @@ static void stm32_exti_isr(const void *exti_range)
 	const struct device *dev = DEVICE_DT_GET(EXTI_NODE);
 	struct stm32_exti_data *data = dev->data;
 	const struct stm32_exti_range *range = exti_range;
-	int line;
+	int line = range->start;
 
+//	printk("DN exti isr: %d, cb:%p \n", range->start, data->cb[line].cb);
 	/* see which bits are set */
 	for (uint8_t i = 0; i <= range->len; i++) {
 		line = range->start + i;
 		/* check if interrupt is pending */
 		if (stm32_exti_is_pending(line) != 0) {
+//			printk("DN exti isr pending: %d\n", line);
+
 			/* clear pending interrupt */
 			stm32_exti_clear_pending(line);
 
 			/* run callback only if one is registered */
 			if (!data->cb[line].cb) {
+//				printk("DN exti isr no\n");
 				continue;
 			}
+
+//			printk("DN exti isr cb: %p\n", data->cb[line].cb);
 
 			data->cb[line].cb(line, data->cb[line].data);
 		}

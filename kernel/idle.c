@@ -38,6 +38,7 @@ void idle(void *unused1, void *unused2, void *unused3)
 	ARG_UNUSED(unused1);
 	ARG_UNUSED(unused2);
 	ARG_UNUSED(unused3);
+	int suspend = 0;
 
 	__ASSERT_NO_MSG(_current->base.prio >= 0);
 
@@ -51,10 +52,17 @@ void idle(void *unused1, void *unused2, void *unused3)
 		 * fallback configuration for new platform bringup.
 		 */
 		if (IS_ENABLED(CONFIG_SMP) && !IS_ENABLED(CONFIG_SCHED_IPI_SUPPORTED)) {
+			printk("DN idle swap 21\n");
 			for (volatile int i = 0; i < 100000; i++) {
 				/* Empty loop */
 			}
+			printk("DN idle swap 22\n");
 			z_swap_unlocked();
+			printk("DN idle swap 23\n");
+		}
+
+		if (suspend) {
+//			printk("DN idle before arch irq lock\n");
 		}
 
 		/* Note weird API: k_cpu_idle() is called with local
@@ -63,9 +71,16 @@ void idle(void *unused1, void *unused2, void *unused3)
 		 * higher level construct.
 		 */
 		(void) arch_irq_lock();
+		if (suspend) {
+//			printk("DN after before arch irq lock\n");
+		}
 
 #ifdef CONFIG_PM
 		_kernel.idle = z_get_next_timeout_expiry();
+
+		if (suspend) {
+//			printk("DN before pm_sus\n");
+		}
 
 		/*
 		 * Call the suspend hook function of the soc interface
@@ -82,12 +97,22 @@ void idle(void *unused1, void *unused2, void *unused3)
 		 * which is essential for the kernel's scheduling
 		 * logic.
 		 */
-		if (k_is_pre_kernel() || !pm_system_suspend(_kernel.idle)) {
+		suspend = 0;
+		if (k_is_pre_kernel()) {
 			k_cpu_idle();
+		} else {
+			if (!pm_system_suspend(_kernel.idle)) {
+				k_cpu_idle();
+			} else {
+				suspend = 1;
+			}
 		}
 #else
 		k_cpu_idle();
 #endif
+		if (suspend) {
+//			printk("DN idle\n");
+		}
 
 #if !defined(CONFIG_PREEMPT_ENABLED)
 # if !defined(CONFIG_USE_SWITCH) || defined(CONFIG_SPARC)
@@ -101,6 +126,7 @@ void idle(void *unused1, void *unused2, void *unused3)
 		 * nothing else will run once it starts.
 		 */
 		if (_kernel.ready_q.cache != _current) {
+			printk("DN idle swap\n");
 			z_swap_unlocked();
 		}
 # endif
